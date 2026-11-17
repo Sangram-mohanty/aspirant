@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.angular/
+.cache/
+coverage/
+.vite/
+.DS_Store
+npm-debug.log*

@@ -1,0 +1,206 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#" (click)="goTo('home'); $event.preventDefault()">
+      <span class="brand-mark">a</span>
+      <span>aspirant<span class="brand-period">.</span><small>YOUR NEXT CHAPTER</small></span>
+    </a>
+
+    <div class="nav-label">YOUR SPACE</div>
+    <nav aria-label="Main navigation">
+      <button *ngFor="let item of navigation" class="nav-item"
+        [class.active]="activeSection === item.id" (click)="goTo(item.id)">
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+        <span *ngIf="item.id === 'tasks'" class="nav-count">{{ pendingTasks }}</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="side-note">
+        <span class="side-note-icon">✳</span>
+        <p>Small steps count.<br /><strong>Keep showing up.</strong></p>
+      </div>
+      <div class="profile">
+        <div class="avatar">S</div>
+        <div><strong>Your journey</strong><small>One day at a time</small></div>
+        <span class="profile-dots">···</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb"><span>MY SPACE</span><span class="crumb-slash">/</span><strong>{{ pageTitle }}</strong></div>
+      <div class="topbar-right">
+        <span class="today-date">{{ todayLabel }}</span>
+        <button class="icon-button notification-button" aria-label="Notifications">♧<i></i></button>
+        <div class="avatar avatar-small">S</div>
+      </div>
+    </header>
+
+    <div *ngIf="errorMessage" class="status-banner" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button (click)="loadData()">Try again</button>
+    </div>
+    <div *ngIf="notice" class="save-indicator" role="status">{{ notice }}</div>
+    <div *ngIf="isLoading" class="loading-state">Getting your space ready…</div>
+
+    <ng-container *ngIf="!isLoading">
+      <section *ngIf="activeSection === 'home'" class="page-section">
+        <div class="welcome-row">
+          <div>
+            <p class="eyebrow">{{ todayDay }}, {{ todayShortDate }}</p>
+            <h1>Good morning, <span>aspirant.</span></h1>
+            <p class="welcome-subtitle">A new day is a new chance to move closer to what’s next.</p>
+          </div>
+          <button class="button button-dark" (click)="goTo('tasks')"><span>＋</span> Add a task</button>
+        </div>
+
+        <section class="hero-card">
+          <div class="hero-copy">
+            <div class="hero-kicker"><span class="sparkle">✳</span> A NOTE FOR TODAY</div>
+            <h2>You are between jobs,<br />not between <em>dreams.</em></h2>
+            <p>Take today one step at a time. Your skills, story, and next opportunity are still yours to shape.</p>
+            <button class="hero-link" (click)="goTo('motivation')">A little encouragement <span>↗</span></button>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="sun"></div><div class="hill hill-back"></div><div class="hill hill-front"></div>
+            <div class="art-caption">YOUR NEXT CHAPTER<br /><strong>STARTS HERE</strong></div>
+          </div>
+          <div class="hero-number">01<span> / EVERY DAY</span></div>
+        </section>
+
+        <div class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon peach">✓</span><span class="stat-change">TODAY</span></div>
+            <div class="stat-number">{{ completedTasks }}<span> / {{ dashboard.tasks.length }}</span></div>
+            <div class="stat-label">Tasks completed</div>
+            <div class="mini-progress"><span [style.width.%]="taskProgress"></span></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon lavender">◷</span><span class="stat-change">DAILY ROUTINE</span></div>
+            <div class="stat-number">{{ completedRoutine }}<span> / {{ dashboard.routines.length }}</span></div>
+            <div class="stat-label">Wellbeing habits</div>
+            <div class="mini-progress lavender-progress"><span [style.width.%]="routineProgress"></span></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon mint">◉</span><span class="stat-change">WATER GOAL</span></div>
+            <div class="stat-number">{{ dashboard.waterGlasses }}<span> / 8</span></div>
+            <div class="stat-label">Glasses of water</div>
+            <div class="mini-progress mint-progress"><span [style.width.%]="waterProgress"></span></div>
+          </article>
+          <article class="stat-card quote-stat">
+            <div class="stat-top"><span class="stat-icon blue">✳</span><span class="stat-change">A GENTLE REMINDER</span></div>
+            <p class="tiny-quote">“{{ quoteOfTheDay }}”</p>
+            <button class="text-link" (click)="nextQuote()">Another reminder <span>↗</span></button>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <section class="panel tasks-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">MAKE TODAY COUNT</p><h2>Today’s focus <span class="count-pill">{{ pendingTasks }} left</span></h2></div>
+              <button class="text-link" (click)="goTo('tasks')">See all <span>↗</span></button>
+            </div>
+            <div class="task-list">
+              <label *ngFor="let task of dashboard.tasks.slice(0, 5); trackBy: trackById" class="task-row" [class.task-done]="task.completed">
+                <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task)" />
+                <span class="custom-check"></span><span class="task-title">{{ task.title }}</span>
+                <span class="task-category" [class]="'task-category ' + task.category.toLowerCase()">{{ task.category }}</span>
+              </label>
+              <p *ngIf="dashboard.tasks.length === 0" class="empty-message">No tasks yet. Add one small step for today.</p>
+            </div>
+            <button class="add-inline" (click)="goTo('tasks')">＋ Add a focus for today</button>
+          </section>
+
+          <section class="panel routine-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">CARE FOR YOURSELF</p><h2>Your daily rhythm</h2></div>
+              <button class="round-arrow" aria-label="View wellbeing" (click)="goTo('wellbeing')">↗</button>
+            </div>
+            <div class="routine-list">
+              <label *ngFor="let routine of dashboard.routines; trackBy: trackById" class="routine-row">
+                <span class="routine-icon">{{ routine.icon }}</span>
+                <span class="routine-name">{{ routine.name }}</span>
+                <input type="checkbox" [checked]="routine.done" (change)="toggleRoutine(routine)" />
+                <span class="routine-check"></span>
+              </label>
+            </div>
+            <div class="water-summary">
+              <div><span class="water-icon">◉</span><span><strong>Water check-in</strong><small>{{ dashboard.waterGlasses }} of 8 glasses</small></span></div>
+              <div class="water-actions"><button (click)="changeWater(-1)" [disabled]="dashboard.waterGlasses <= 0" aria-label="Remove a glass">−</button><button (click)="changeWater(1)" [disabled]="dashboard.waterGlasses >= 8" aria-label="Add a glass">+</button></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="bottom-grid">
+          <section class="panel roadmap-preview">
+            <div class="panel-heading">
+              <div><p class="eyebrow">YOUR NEXT CHAPTER</p><h2>Job search roadmap</h2></div>
+              <button class="text-link" (click)="goTo('roadmap')">View roadmap <span>↗</span></button>
+            </div>
+            <div class="roadmap-steps">
+              <div *ngFor="let step of dashboard.roadmap.slice(0, 3); let last = last" class="roadmap-step" [class.step-complete]="step.completed">
+                <span class="step-dot">{{ step.completed ? '✓' : '' }}</span><span class="step-line" *ngIf="!last"></span>
+                <div><strong>{{ step.title }}</strong><small>{{ step.description }}</small></div><span class="step-date">{{ step.date }}</span>
+              </div>
+            </div>
+          </section>
+          <section class="motivation-card">
+            <div class="video-art"><span class="video-orbit"></span><button aria-label="Find a motivational video" (click)="openMotivationVideo()">▶</button><span class="video-tag">A MOMENT FOR YOU</span></div>
+            <div class="motivation-copy"><p class="eyebrow">WHEN YOU NEED A RESET</p><h2>Pause. Breathe.<br />Begin again.</h2><button class="text-link" (click)="openMotivationVideo()">Watch a little reminder <span>↗</span></button></div>
+          </section>
+        </div>
+        <footer class="page-footer">Progress isn’t always loud. Some days, showing up is the whole victory. <span>✳</span></footer>
+      </section>
+
+      <section *ngIf="activeSection === 'tasks'" class="page-section subpage">
+        <div class="subpage-heading"><div><p class="eyebrow">ONE THING AT A TIME</p><h1>Your daily <span>focus.</span></h1><p class="welcome-subtitle">Make a little plan, then give yourself credit for every step.</p></div><div class="focus-score"><strong>{{ completedTasks }}<small>/ {{ dashboard.tasks.length }}</small></strong><span>DONE TODAY</span></div></div>
+        <section class="panel form-panel">
+          <p class="eyebrow">ADD A SMALL, DOABLE STEP</p>
+          <form class="inline-form" (ngSubmit)="addTask()"><input name="newTaskTitle" [(ngModel)]="newTaskTitle" placeholder="e.g. Tailor my CV for one role" maxlength="120" required /><select name="newTaskCategory" [(ngModel)]="newTaskCategory"><option>Career</option><option>Learning</option><option>Personal</option></select><button class="button button-dark" type="submit">＋ Add task</button></form>
+        </section>
+        <section class="panel full-list-panel"><div class="panel-heading"><div><p class="eyebrow">YOUR LIST</p><h2>Today’s tasks <span class="count-pill">{{ pendingTasks }} to go</span></h2></div><button class="quiet-button" (click)="clearCompleted()" [disabled]="completedTasks === 0">Clear completed</button></div>
+          <div class="task-list full-task-list"><div *ngFor="let task of dashboard.tasks; trackBy: trackById" class="task-row full-task-row" [class.task-done]="task.completed"><label class="task-checkbox"><input type="checkbox" [checked]="task.completed" (change)="toggleTask(task)" /><span class="custom-check"></span></label><span class="task-title">{{ task.title }}</span><span class="task-category" [class]="'task-category ' + task.category.toLowerCase()">{{ task.category }}</span><button class="delete-button" (click)="removeTask(task.id)" aria-label="Delete task">×</button></div><p *ngIf="dashboard.tasks.length === 0" class="empty-message">Your list is clear. Add a task when you’re ready.</p></div>
+        </section>
+      </section>
+
+      <section *ngIf="activeSection === 'roadmap'" class="page-section subpage">
+        <div class="subpage-heading"><div><p class="eyebrow">YOUR NEXT CHAPTER</p><h1>Make a <span>roadmap.</span></h1><p class="welcome-subtitle">A job search is a project. Break it into steps that feel manageable.</p></div><div class="focus-score"><strong>{{ completedRoadmap }}<small>/ {{ dashboard.roadmap.length }}</small></strong><span>STEPS DONE</span></div></div>
+        <section class="panel form-panel"><p class="eyebrow">ADD YOUR NEXT MILESTONE</p><form class="inline-form" (ngSubmit)="addRoadmapStep()"><input name="roadmapTitle" [(ngModel)]="newRoadmapTitle" placeholder="e.g. Practice system design" maxlength="100" required /><input name="roadmapDate" [(ngModel)]="newRoadmapDate" placeholder="Target date (optional)" maxlength="40" /><button class="button button-dark" type="submit">＋ Add step</button></form></section>
+        <section class="panel full-list-panel"><div class="panel-heading"><div><p class="eyebrow">YOUR PLAN, YOUR PACE</p><h2>Roadmap milestones</h2></div></div><div class="roadmap-steps roadmap-full"><div *ngFor="let step of dashboard.roadmap; let last = last; trackBy: trackById" class="roadmap-step" [class.step-complete]="step.completed"><button class="step-dot" [attr.aria-label]="step.completed ? 'Mark incomplete' : 'Mark complete'" (click)="toggleRoadmap(step)">{{ step.completed ? '✓' : '' }}</button><span class="step-line" *ngIf="!last"></span><div><strong>{{ step.title }}</strong><small>{{ step.description }}</small></div><span class="step-date">{{ step.date || 'When you’re ready' }}</span></div><p *ngIf="dashboard.roadmap.length === 0" class="empty-message">Your roadmap can start with one small milestone.</p></div></section>
+      </section>
+
+      <section *ngIf="activeSection === 'journal'" class="page-section subpage">
+        <div class="subpage-heading"><div><p class="eyebrow">A SPACE THAT’S JUST YOURS</p><h1>Let it <span>out.</span></h1><p class="welcome-subtitle">Keep your thoughts, little wins, and lessons somewhere safe.</p></div><div class="journal-stamp">✳<small>NO RIGHT<br />OR WRONG</small></div></div>
+        <div class="journal-grid"><section class="panel journal-compose"><p class="eyebrow">TODAY’S ENTRY · {{ todayLabel }}</p><h2>What’s on your mind?</h2><p class="privacy-note">Your journal stays in this browser on this device.</p><form (ngSubmit)="saveJournalEntry()"><label class="field-label" for="journal-mood">How are you feeling?</label><select id="journal-mood" name="journalMood" [(ngModel)]="journalMood"><option>Hopeful</option><option>Focused</option><option>Uncertain</option><option>Restless</option><option>Grateful</option><option>Tired</option></select><label class="field-label" for="journal-content">Write it out. This is your space.</label><textarea id="journal-content" name="journalContent" [(ngModel)]="journalContent" placeholder="Today I’m thinking about…" rows="8" maxlength="4000" required></textarea><div class="journal-submit"><small>{{ journalContent.length }} / 4000</small><button class="button button-dark" type="submit">Save this entry</button></div></form></section><section class="journal-entries"><p class="eyebrow">YOUR PRIVATE PAGES</p><h2>Recent reflections</h2><article *ngFor="let entry of dashboard.journalEntries; trackBy: trackById" class="panel journal-entry"><div class="entry-meta"><span>{{ entry.date }}</span><span class="mood-pill">{{ entry.mood }}</span></div><p>{{ entry.content }}</p></article><p *ngIf="dashboard.journalEntries.length === 0" class="empty-message">Your first reflection will find a home here.</p></section></div>
+      </section>
+
+      <section *ngIf="activeSection === 'wellbeing'" class="page-section subpage">
+        <div class="subpage-heading"><div><p class="eyebrow">YOU ARE PART OF THE PLAN</p><h1>Look after <span>you.</span></h1><p class="welcome-subtitle">Your wellbeing matters, even when your to-do list is full.</p></div><div class="wellbeing-flower">✳</div></div>
+        <div class="wellbeing-grid"><section class="panel water-panel"><span class="large-water-icon">◉</span><p class="eyebrow">A LITTLE HYDRATION</p><h2>{{ dashboard.waterGlasses }} <small>/ 8 glasses</small></h2><p class="welcome-subtitle">No pressure to be perfect. Every glass is a good start.</p><div class="water-drops"><span *ngFor="let drop of waterDrops; let i = index" [class.drop-filled]="i < dashboard.waterGlasses">◉</span></div><div class="water-button-row"><button class="quiet-button" (click)="changeWater(-1)" [disabled]="dashboard.waterGlasses <= 0">− Remove one</button><button class="button button-dark" (click)="changeWater(1)" [disabled]="dashboard.waterGlasses >= 8">＋ Add a glass</button></div></section>
+          <section class="panel habit-panel"><p class="eyebrow">YOUR GENTLE ROUTINE</p><h2>Check in with yourself</h2><p class="welcome-subtitle">Choose what feels right for today.</p><label *ngFor="let routine of dashboard.routines; trackBy: trackById" class="habit-row"><span class="routine-icon">{{ routine.icon }}</span><span><strong>{{ routine.name }}</strong><small>{{ routine.hint }}</small></span><input type="checkbox" [checked]="routine.done" (change)="toggleRoutine(routine)" /><span class="routine-check"></span></label></section>
+        </div><div class="kind-note"><span>✳</span><p><strong>A gentle reminder</strong><br />Rest is productive. Eating well, moving your body, and taking a break are all part of building your next chapter.</p></div>
+      </section>
+
+      <section *ngIf="activeSection === 'interview'" class="page-section subpage">
+        <div class="subpage-heading"><div><p class="eyebrow">PRACTICE MAKES THE NERVES QUIETER</p><h1>Get interview <span>ready.</span></h1><p class="welcome-subtitle">Take a question at a time. You don’t have to have every answer today.</p></div><div class="interview-badge">Q<span>&</span>A</div></div>
+        <div class="interview-toolbar"><span>{{ questions.length }} practice prompts</span><select [(ngModel)]="questionFilter" aria-label="Filter interview questions"><option value="All">All topics</option><option *ngFor="let category of questionCategories" [value]="category">{{ category }}</option></select></div>
+        <section class="question-list"><article *ngFor="let question of filteredQuestions; trackBy: trackById" class="panel question-card"><div class="question-top"><span class="task-category" [class]="'task-category ' + question.category.toLowerCase()">{{ question.category }}</span><span class="question-number">PROMPT {{ question.number }}</span></div><h2>{{ question.question }}</h2><div *ngIf="question.open" class="answer-guide"><strong>A way to think about it</strong><p>{{ question.guide }}</p><ul><li>Set the context clearly.</li><li>Explain what you did and why.</li><li>Share the outcome and what you learned.</li></ul></div><button class="text-link" (click)="question.open = !question.open">{{ question.open ? 'Hide' : 'Show' }} answer guide <span>{{ question.open ? '−' : '＋' }}</span></button></article></section>
+      </section>
+
+      <section *ngIf="activeSection === 'opportunities'" class="page-section subpage">
+        <div class="subpage-heading"><div><p class="eyebrow">GOOD THINGS START WITH A CONVERSATION</p><h1>Find your next <span>opportunity.</span></h1><p class="welcome-subtitle">Explore roles shared by the community, or post an opportunity for someone else.</p></div><button class="button button-dark" (click)="showJobForm = !showJobForm">{{ showJobForm ? 'Close form' : '＋ Post a role' }}</button></div>
+        <section *ngIf="showJobForm" class="panel form-panel job-form-panel"><p class="eyebrow">SHARE AN OPPORTUNITY</p><form (ngSubmit)="submitJob()" class="job-form"><input name="jobTitle" [(ngModel)]="jobDraft.title" placeholder="Role title" required maxlength="100" /><input name="jobCompany" [(ngModel)]="jobDraft.company" placeholder="Company" required maxlength="100" /><input name="jobLocation" [(ngModel)]="jobDraft.location" placeholder="Location or Remote" required maxlength="100" /><input name="jobType" [(ngModel)]="jobDraft.type" placeholder="Full-time, contract…" maxlength="60" /><input name="jobUrl" [(ngModel)]="jobDraft.url" placeholder="Application link (https://…)" type="url" required /><textarea name="jobDescription" [(ngModel)]="jobDraft.description" placeholder="A few details about the role" rows="3" maxlength="1000"></textarea><button class="button button-dark" type="submit">Publish opportunity</button></form></section>
+        <section class="opportunity-header"><div><p class="eyebrow">COMMUNITY BOARD</p><h2>{{ jobs.length }} opportunities</h2></div><span class="board-note">Shared with care · Apply thoughtfully</span></section>
+        <div class="jobs-grid"><article *ngFor="let job of jobs; trackBy: trackById" class="panel job-card"><div class="company-mark">{{ job.company.charAt(0) }}</div><span class="job-type">{{ job.type }}</span><h2>{{ job.title }}</h2><p class="job-company">{{ job.company }} <span>·</span> {{ job.location }}</p><p class="job-description">{{ job.description }}</p><div class="job-footer"><small>Shared {{ job.postedAt }}</small><a class="button button-soft" [href]="job.url" target="_blank" rel="noopener noreferrer">View role ↗</a></div></article><p *ngIf="jobs.length === 0" class="empty-message">No opportunities yet. If you know of a role, be the first to share it.</p></div>
+      </section>
+
+      <section *ngIf="activeSection === 'motivation'" class="page-section subpage">
+        <div class="subpage-heading"><div><p class="eyebrow">SAVE THIS FOR A HARD DAY</p><h1>Keep going, <span>gently.</span></h1><p class="welcome-subtitle">You don’t have to feel fearless to take the next step.</p></div><div class="wellbeing-flower">✳</div></div>
+        <section class="motivation-feature panel"><div class="feature-art"><div class="feature-sun"></div><span>STILL GROWING</span><button aria-label="Find a motivational video" (click)="openMotivationVideo()">▶</button></div><div class="feature-copy"><p class="eyebrow">A SMALL PAUSE FOR YOU</p><h2>“{{ quoteOfTheDay }}”</h2><p>Take a breath. You have already made it through days you thought you couldn’t. You can begin again from here.</p><div class="feature-actions"><button class="button button-dark" (click)="openMotivationVideo()">Find a “never give up” video ↗</button><button class="quiet-button" (click)="nextQuote()">Another reminder</button></div></div></section>
+        <div class="kind-note"><span>✳</span><p><strong>Remember</strong><br />A job title is something you do. It is not the measure of who you are.</p></div>
+      </section>
+    </ng-container>
+  </main>
+</div>
